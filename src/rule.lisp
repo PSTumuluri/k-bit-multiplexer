@@ -10,18 +10,24 @@
     :initform (error "action must be provided")
     :reader action)))
 
-(defun random-predicate (length)
-  (let ((vec (make-array length :fill-pointer 0)))
-    (dotimes (i length)
-      (let ((x (random 3)))
-        (vector-push (if (= x 2) '\# x) vec)))
-    vec))
+(defun random-action ()
+  (random 2))
+
+(defun print-rule (rule)
+  (format t "~a : ~a" (predicate rule) (action rule)))
+
+(defun random-rule (string)
+  "Returns a random rule whose predicate matches the string and whose action is random."
+  (let ((predicate (make-array (length string) :fill-pointer 0)))
+    (dotimes (i (length string))
+      ;; 50% chance to roll the existing bit, 50% chance to roll #.
+      (let ((roll (random 1.0)))
+        (vector-push (if (< roll 0.5) (elt string i) '\#) predicate)))
+    (make-instance 'rule :predicate predicate :action (random-action))))
 
 (defun print-population (population)
   (dotimes (i (length population))
-    (let ((rule (elt population i)))
-      (with-slots (predicate action) rule
-        (format t "~a~t~a~%" (predicate rule) (action rule))))))
+    (print-rule (elt population i))))
 
 (defun initialize (pop-size address-bits)
   (let ((population (make-array pop-size :fill-pointer 0)))
